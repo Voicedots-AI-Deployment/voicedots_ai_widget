@@ -84,6 +84,7 @@ export default function DataCollectionModal({
                       <input
                         type="text"
                         value={value}
+                        placeholder={`Enter your ${label.replace(/_/g, " ")}`}
                         onChange={(e: any) => handleChange(label, e.target.value)}
                         className="vd-input-field"
                       />
@@ -103,7 +104,7 @@ export default function DataCollectionModal({
                     </button>
                     <button type="submit" className="vd-btn-save">
                       <Save size={14} />
-                      Save Changes
+                      Submit
                     </button>
                   </div>
                 </div>
