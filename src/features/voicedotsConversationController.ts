@@ -42,10 +42,28 @@ export function useVoicedotsConversationController() {
         }
     };
 
-    // Editable-form submit: send the typed lead to the agent and close.
+    // Tracks the current agent so the lead-captured guard is per-client.
+    const agentIdRef = useRef<string>("");
+    // Session-level guard: once the lead is captured (or the caller dismisses the
+    // form), the popup must not re-appear — this stopped an endless popup loop that
+    // also masked the End Call button.
+    const leadCapturedRef = useRef(false);
+
+    const leadStorageKey = () => `vd_lead_captured_${agentIdRef.current || "default"}`;
+    const isLeadAlreadyCaptured = () => {
+        if (leadCapturedRef.current) return true;
+        try { return localStorage.getItem(leadStorageKey()) === "1"; } catch { return false; }
+    };
+    const markLeadCaptured = () => {
+        leadCapturedRef.current = true;
+        try { localStorage.setItem(leadStorageKey(), "1"); } catch { /* ignore */ }
+    };
+
+    // Editable-form submit: send the typed lead to the agent and close for good.
     const handleUserDataCollected = async (data: any) => {
         setUserData(data);
         setDataCollectionOpen(false);
+        markLeadCaptured();
         await publishToAgent({ type: "USER_DATA", data });
         await publishToAgent({ type: "POPUP_STATE", open: false });
     };
@@ -80,6 +98,7 @@ export function useVoicedotsConversationController() {
         if (startingRef.current) return;
         if (isConnected || isConnecting) return;
 
+        agentIdRef.current = agentId;
         startingRef.current = true;
         setIsConnecting(true);
         setError(null);
@@ -139,6 +158,14 @@ export function useVoicedotsConversationController() {
 
                     if (msg.type === "TOOL_CALL") {
                         if (msg.function === "openValidationPopup") {
+                            // Guard: never re-show the popup once the lead is captured or
+                            // the caller already dealt with it this session. Prevents the
+                            // endless-popup loop and keeps End Call reachable.
+                            if (isLeadAlreadyCaptured()) {
+                                await publishToAgent({ type: "USER_DATA", data: { ...userData, _suppressed: true } });
+                                await publishToAgent({ type: "POPUP_STATE", open: false });
+                                return;
+                            }
                             const lead = {
                                 name: msg.args?.name ?? "",
                                 email: msg.args?.email ?? "",
