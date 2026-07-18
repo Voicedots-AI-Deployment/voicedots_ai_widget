@@ -4,16 +4,22 @@ import AnimationController from "../features/AnimationController";
 import type { AvatarHandle } from "../features/AnimationController";
 import { useConversationController } from "../features/conversationController";
 import { useVoicedotsConversationController } from "../features/voicedotsConversationController";
+import { useSarvamConversationController } from "../features/sarvamConversationController";
 import DataCollectionModal from "../modals/DataCollectionModal";
 import VoicedotsDataCollectionModal from "../modals/VoicedotsDataCollectionModal";
 import type { Avatar } from "../features/conversationController";
 
 
-export default function AITeamWidget({ title, agentId, avatars, logo, pos, mini, msg }: { title: string, agentId: string, avatars: Avatar[], logo: string, pos: string, mini: boolean, msg: string }) {
+export default function AITeamWidget({ title, agentId, avatars, logo, pos, mini, msg, pipeline, wsUrl }: { title: string, agentId: string, avatars: Avatar[], logo: string, pos: string, mini: boolean, msg: string, pipeline?: string, wsUrl?: string }) {
   const [minimized, setMinimized] = useState(mini);
   let tag = "default";
   let conversation;
-  if (agentId.includes("voicedots") || agentId === "agent_6401kktn9d03fncsk4j27psd9gtk") {
+  if (pipeline === "sarvam") {
+    // Sarvam WebSocket pipeline (multi-tenant): same tool protocol and modals
+    // as the voicedots LiveKit path, different transport.
+    conversation = useSarvamConversationController(wsUrl);
+    tag = "voicedots";
+  } else if (agentId.includes("voicedots") || agentId === "agent_6401kktn9d03fncsk4j27psd9gtk") {
     conversation = useVoicedotsConversationController();
     tag = "voicedots";
   } else {

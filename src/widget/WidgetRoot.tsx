@@ -49,6 +49,8 @@ export default function WidgetRoot({ config }: { config: string }) {
           pos={parsedConfig.pos || 'right'} 
           mini={parsedConfig.minimized || false }
           msg={parsedConfig.pillMessage || ""}
+          pipeline={parsedConfig.pipeline}
+          wsUrl={parsedConfig.wsUrl}
         />
 
         {/* This is where all modals will be injected */}
