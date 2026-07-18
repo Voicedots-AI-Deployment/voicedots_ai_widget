@@ -24,6 +24,7 @@ class PcmPlayer extends AudioWorkletProcessor {
   constructor() {
     super();
     this.queue = []; this.offset = 0; this.buffered = 0; this.primed = false;
+    this.firstPrime = true;   // ~300ms first prime kills start-of-call stutter
     this.port.onmessage = (e) => {
       if (e.data === "clear") { this.queue = []; this.offset = 0; this.buffered = 0; this.primed = false; return; }
       const int16 = new Int16Array(e.data);
@@ -35,7 +36,8 @@ class PcmPlayer extends AudioWorkletProcessor {
   process(inputs, outputs) {
     const out = outputs[0][0];
     if (!this.primed) {
-      if (this.buffered >= 2880) this.primed = true;    // ~120ms @ 24k
+      const need = this.firstPrime ? 7200 : 2880;       // ~300ms first, ~120ms after
+      if (this.buffered >= need) { this.primed = true; this.firstPrime = false; }
       else { out.fill(0); return true; }
     }
     let i = 0;
