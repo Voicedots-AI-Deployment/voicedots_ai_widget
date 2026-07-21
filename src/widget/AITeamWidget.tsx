@@ -14,7 +14,7 @@ export default function AITeamWidget({ title, agentId, avatars, logo, pos, mini,
   const [minimized, setMinimized] = useState(mini);
   let tag = "default";
   let conversation;
-  if (pipeline === "sarvam") {
+  if (pipeline === "gemini" || pipeline === "websocket" || pipeline === "sarvam") {
     // Sarvam WebSocket pipeline (multi-tenant): same tool protocol and modals
     // as the voicedots LiveKit path, different transport.
     conversation = useSarvamConversationController(wsUrl);

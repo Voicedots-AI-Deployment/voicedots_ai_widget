@@ -1,6 +1,6 @@
 {
   "name": "voicedots-ai-widget",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "private": false,
   "description": "VoiceDots AI widget that enables websites to interact with visitors through conversational voice AI.",
   "type": "module",
